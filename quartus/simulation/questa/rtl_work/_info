@@ -1,0 +1,250 @@
+m255
+K4
+z2
+Z0 !s12c _opt1
+Z1 !s99 nomlopt
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+R0
+R1
+Z2 !s12c _opt
+R1
+R2
+R1
+R2
+R1
+!s11f vlog 2024.3 2024.09, Sep 10 2024
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z3 dC:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/simulation/questa
+T_opt
+!s110 1756088952
+V0bc[g2nD;?AOYR7GO_Lo02
+Z4 04 6 4 work cmd_tb fast 0
+=1-2c0da78fec2e-68abca77-2a2-269c
+R1
+Z5 !s12f OEM100
+Z6 !s12b OEM100
+Z7 !s124 OEM10U7 
+Z8 !s135 nogc
+Z9 o-quiet -auto_acc_if_foreign -work work -L altera_ver -L lpm_ver -L sgate_ver -L altera_mf_ver -L altera_lnsim_ver -L cyclonev_ver -L cyclonev_hssi_ver -L cyclonev_pcie_hip_ver -L rtl_work -L work +acc
+Z10 tCvgOpt 0
+n@_opt
+Z11 OL;O;2024.3;79
+R3
+T_opt1
+!s110 1756094695
+V5:OD5P@Y1S[5TYl:bR=mW2
+R4
+=1-2c0da78fec2e-68abe0e6-ee-5398
+R1
+R5
+R6
+R7
+R8
+R9
+R10
+n@_opt1
+R11
+R3
+vCmd
+2C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/source/Cmd.sv
+Z12 DXx6 sv_std 3 std 0 22 9oUSJO;AeEaW`l:M@^WG92
+Z13 !s110 1756094743
+!i10b 1
+!s100 i;GTl5XKTg::iGASacWn[2
+I<lzK2QPVK7o4niN5IN3KO3
+S1
+R3
+w1756094637
+8C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/source/Cmd.sv
+FC:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/source/Cmd.sv
+!i122 0
+L0 1 478
+Z14 VDg1SIo80bB@j0V0VzS_@n1
+Z15 OL;L;2024.3;79
+r1
+!s85 0
+31
+Z16 !s108 1756094743.000000
+!s107 C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/source/Cmd.sv|
+!s90 -reportprogress|300|-sv|-work|work|+incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/source|C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/source/Cmd.sv|
+!i113 0
+Z17 o-sv -work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+!s92 -sv -work work +incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/source -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R10
+n@cmd
+vcmd_tb
+2C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/cmd_tb.sv
+R12
+R13
+!i10b 1
+!s100 X4?;]:AM7:<?MHCja0jWI1
+II8hNohQ01i[TXJSQfbn2K0
+S1
+R3
+w1756094685
+8C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/cmd_tb.sv
+FC:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/cmd_tb.sv
+!i122 1
+L0 2 344
+R14
+R15
+r1
+!s85 0
+31
+R16
+!s107 C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/cmd_tb.sv|
+!s90 -reportprogress|300|-sv|-work|work|+incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb|C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/cmd_tb.sv|
+!i113 0
+R17
+!s92 -sv -work work +incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R10
+vi2c_master
+2C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_master.v
+Z18 !s110 1756094744
+!i10b 1
+!s100 X<z@neK@o1EBY:Gmbz<j[0
+IIZ3HQhI[I3Zml`Sii9P8O3
+R3
+w1756088192
+8C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_master.v
+FC:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_master.v
+!i122 5
+L0 32 866
+R14
+R15
+r1
+!s85 0
+31
+Z19 !s108 1756094744.000000
+!s107 C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_master.v|
+!s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb|C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_master.v|
+!i113 0
+Z20 o-vlog01compat -work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+Z21 !s92 -vlog01compat -work work +incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R10
+vi2c_slave
+2C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_slave.v
+R18
+!i10b 1
+!s100 320D_bmZH0>ffM;P3R8z13
+I<3Az7:H^nYBgR7L32Tm9k1
+R3
+w1755739199
+8C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_slave.v
+FC:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_slave.v
+!i122 4
+L0 32 472
+R14
+R15
+r1
+!s85 0
+31
+R19
+!s107 C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_slave.v|
+!s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb|C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/i2c_slave.v|
+!i113 0
+R20
+R21
+R10
+vuart
+2C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart.v
+R13
+!i10b 1
+!s100 mA0;bAnzfUTAkKDdaFOlR1
+IbGGZ:kILS0ioJB^YQ;RD`2
+R3
+Z22 w1755739233
+8C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart.v
+FC:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart.v
+!i122 3
+L0 32 82
+R14
+R15
+r1
+!s85 0
+31
+R16
+!s107 C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart.v|
+!s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb|C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart.v|
+!i113 0
+R20
+R21
+R10
+vuart_rx
+2C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_rx.v
+R18
+!i10b 1
+!s100 U:FK?gRcDU7o6g0eZ2<ZO2
+IN3INhT]kn?S8<KV@RdDCH2
+R3
+R22
+8C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_rx.v
+FC:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_rx.v
+!i122 6
+L0 32 111
+R14
+R15
+r1
+!s85 0
+31
+R19
+!s107 C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_rx.v|
+!s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb|C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_rx.v|
+!i113 0
+R20
+R21
+R10
+vuart_tx
+2C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_tx.v
+R13
+!i10b 1
+!s100 ;HbFe@C:IEX_5oJlODO7_3
+ISV=IFEB=U6i;DVbR3=T=n2
+R3
+w1755759337
+8C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_tx.v
+FC:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_tx.v
+!i122 2
+L0 32 84
+R14
+R15
+r1
+!s85 0
+31
+R16
+!s107 C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_tx.v|
+!s90 -reportprogress|300|-vlog01compat|-work|work|+incdir+C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb|C:/Users/wisawa.thumwong/Documents/TMAG3001/Cmd/quartus/../tb/uart_tx.v|
+!i113 0
+R20
+R21
+R10

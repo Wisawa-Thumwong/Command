@@ -1,0 +1,173 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "s_tdata[0]",
+					"strict" : false
+				},
+				{
+					"name" : "s_tvalid",
+					"strict" : false
+				},
+				{
+					"name" : "m_tready",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_Addr[0]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_Addr[1]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_Addr[2]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_Addr[3]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_Addr[4]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_Addr[5]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_Addr[6]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_start",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_read",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_write",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_stop",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_valid",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tdata[0]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tdata[1]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tdata[2]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tdata[3]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tdata[4]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tdata[5]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tdata[6]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tdata[7]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tvalid",
+					"strict" : false
+				},
+				{
+					"name" : "m_cmd_tready",
+					"strict" : false
+				},
+				{
+					"name" : "clk",
+					"strict" : false
+				},
+				{
+					"name" : "m_cmd_tdata[0]",
+					"strict" : false
+				},
+				{
+					"name" : "m_cmd_tvalid",
+					"strict" : false
+				},
+				{
+					"name" : "rstn",
+					"strict" : false
+				},
+				{
+					"name" : "m_tdata[1]",
+					"strict" : false
+				},
+				{
+					"name" : "m_tvalid",
+					"strict" : false
+				},
+				{
+					"name" : "m_tdata[2]",
+					"strict" : false
+				},
+				{
+					"name" : "m_tdata[3]",
+					"strict" : false
+				},
+				{
+					"name" : "m_tdata[4]",
+					"strict" : false
+				},
+				{
+					"name" : "m_tdata[5]",
+					"strict" : false
+				},
+				{
+					"name" : "m_tdata[6]",
+					"strict" : false
+				},
+				{
+					"name" : "m_tdata[7]",
+					"strict" : false
+				},
+				{
+					"name" : "m_tdata[0]",
+					"strict" : false
+				},
+				{
+					"name" : "s_cmd_tready",
+					"strict" : false
+				},
+				{
+					"name" : "tx_busy",
+					"strict" : false
+				},
+				{
+					"name" : "rx_busy",
+					"strict" : false
+				}
+			]
+		}
+	]
+}
