@@ -1,0 +1,31 @@
+# ignore Quartus II generated folders
+**/db
+**/simulation
+**/incremental_db
+**/output_files
+**/.qsys_edit
+**/.idea
+**/greybox_tmp
+
+# ignore Quartus II generated files
+*.bakgi
+*.jdi
+*.rpt
+*.qws
+*.qarlog
+*.qdf
+*.vstf
+*.wlf
+*.tcl~
+
+#ignore db in Quartus.
+db/
+ 
+#ignore output file.
+output_files/
+ 
+#ignore incremental_db
+incremental_db/
+ 
+#ignore greybox_tmp
+greybox_tmp/
