@@ -9,13 +9,7 @@ module cmd_tb ();
 //Cmd
     //Tx
     reg tx_busy;                     //active when s_axis_tvalid is == 1 and inactive when send stop bit
-    wire [7:0] s_tdata;
-    wire s_tvalid;
-    reg s_tready;
-    
-    reg[7:0] m_tdata;
-    reg m_tvalid;
-    wire m_tready;
+
     reg rx_busy;                     //Active when Rxd is get start bit and inactive shen rxd is get stop bit
     reg rx_overrun_error;
     reg rx_frame_error;
@@ -46,16 +40,16 @@ module cmd_tb ();
     reg s_axis_tvalid;
     wire s_axis_tready;
 
-    /*
-     * AXI output
-     */
+
+    //AXI output
+    
     wire [7:0]  m_axis_tdata;
     wire m_axis_tvalid;
     reg m_axis_tready;
 
-    /*
-     * UART interface
-     */
+    
+    //UART interface
+    
     wire                   rxd;
     wire                   txd;
 
@@ -78,26 +72,10 @@ module cmd_tb ();
     reg [15:0] prescale;
     wire stop_on_idle;
 
-
+//===========================================================================================
+//Assignment
     assign rstn = ~rst;
 
-//===========================================================================================
-//I2C Slave Dummy
-    /*reg [7:0] s_axis_data_tdata;
-    reg s_axis_data_tvalid;
-    wire s_axis_data_tready;
-    reg s_axis_data_tlast;
-    wire [7:0] m_axis_data_tdata;
-    wire m_axis_data_tvalid;
-    reg m_axis_data_tready;
-    wire m_axis_data_tlast;
-
-    reg enable;
-    reg [6:0] device_address = 7'b1001101;
-    reg [6:0] device_address_mask = 7'h7f;
-
-    wire [6:0] bus_address;
-    wire bus_addressed;*/
 //===========================================================================================  
 //PORT MAP
     //UART Interface
@@ -181,8 +159,8 @@ module cmd_tb ();
         .s_axis_cmd_address (s_cmd_Addr),
         .s_axis_cmd_start (s_cmd_start),
         .s_axis_cmd_read (s_cmd_read),
-        .s_axis_cmd_write (s_cmd_write_multiple),
-        .s_axis_cmd_write_multiple (s_cmd_write),
+        .s_axis_cmd_write (s_cmd_write),
+        .s_axis_cmd_write_multiple (s_cmd_write_multiple),
         .s_axis_cmd_stop (s_cmd_stop),
         .s_axis_cmd_valid (s_cmd_valid),
         .s_axis_cmd_ready (s_cmd_ready),
@@ -208,54 +186,9 @@ module cmd_tb ();
         .stop_on_idle (stop_on_idle)
     );
 
-    //Dummy Slave I2C
-    /*i2c_slave #(
-        .FILTER_LEN(4)
-    )
-    u_i2c_slave(
-     .clk(clk),
-     .rst(rst),
-
-    
-    
-    
-    .release_bus(bus_control),
-    .s_axis_data_tdata(s_axis_data_tdata),
-    .s_axis_data_tvalid(s_axis_data_tvalid),
-    .s_axis_data_tready(s_axis_data_tready),
-    .s_axis_data_tlast(s_axis_data_tlast),
-    .m_axis_data_tdata(m_axis_data_tdata),
-    .m_axis_data_tvalid(m_axis_data_tvalid),
-    .m_axis_data_tready(m_axis_data_tready),
-    .m_axis_data_tlast(m_axis_data_tlast),
-   
-    
-    
-    .scl_i(scl_o),
-    .scl_o(scl_i),
-    .scl_t(scl_t),
-    .sda_i(sda_o),
-    .sda_o(sda_i),
-    .sda_t(sda_t),
-   
-    
-    
-    .busy(busy),
-    .bus_address(bus_address),
-    .bus_addressed(bus_addressed),
-    .bus_active(bus_active),
-   
-    
-    
-    .enable(enable),
-    .device_address(device_address),
-    .device_address_mask(device_address_mask)
-    );*/
-
 //===========================================================================================
 //Start process
 always begin #10 assign clk = ~clk; end
-
 
     initial begin
         clk <= 0;
@@ -264,26 +197,12 @@ always begin #10 assign clk = ~clk; end
         rs_axis_tvalid <= 0;
         prescale <= 0;
         
-        /*enable <= 0;
-
-        //I2C Dummy
-        s_axis_data_tdata <= 0;
-        s_axis_data_tlast <= 0;
-        s_axis_data_tvalid <= 0;   */
-        
         sda_i <= 1;
         #200
         rst <= 0;
         prescale <= 20;
         
         sda_i <= 0;
-        //I2C Dummy
-        /*m_axis_data_tready <= 1;
-        device_address <= 7'b1001111;
-        device_address_mask <= 7'h7f;
-        enable <= 1;*/
-        
-
 
         //Write Mode
         #200
@@ -301,25 +220,28 @@ always begin #10 assign clk = ~clk; end
         #6750
 
 
-
         #300000
         rst <= 1;
         #20
         rst <= 0;
 
         //Read Mode
-        /*#2000
-        rs_axis_tdata <= 8'b10011111;
+        #2000
+        rs_axis_tdata <= 8'b10011011;   //{Target Addr "1001101" , Write_mode "1"}
         rs_axis_tvalid <= 1;
         #20
         rs_axis_tvalid <= 0;
         #14000
         #18500
-        rs_axis_tdata <= 8'b10000011;
+        rs_axis_tdata <= 8'b10111011;       //{Conversion "1" , Register Addr "0111011"}
         rs_axis_tvalid <= 1;
         #20
-        rs_axis_tvalid <= 0;*/
-
+        rs_axis_tvalid <= 0;
+        #200000
+        rs_axis_tdata <= 8'b10111011;       //Send Any command for stop
+        rs_axis_tvalid <= 1;
+        #20
+        rs_axis_tvalid <= 0;
 
         #400000
         $finish;

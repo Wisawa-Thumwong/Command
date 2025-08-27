@@ -56,19 +56,29 @@ set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
 set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH cmd_tb -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_NAME cmd_tb -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id cmd_tb
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME cmd_tb -section_id cmd_tb
+set_global_assignment -name VERILOG_FILE ../source/uart_tx.v
+set_global_assignment -name VERILOG_FILE ../source/uart_rx.v
+set_global_assignment -name VERILOG_FILE ../source/uart.v
+set_global_assignment -name SYSTEMVERILOG_FILE ../source/Top_Cmd.sv
+set_global_assignment -name VERILOG_FILE ../source/i2c_slave.v
+set_global_assignment -name VERILOG_FILE ../source/i2c_master.v
 set_global_assignment -name SYSTEMVERILOG_FILE ../source/Cmd.sv
+set_global_assignment -name EDA_TEST_BENCH_NAME Top_Cmd_tb -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id Top_Cmd_tb
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME Top_Cmd_tb -section_id Top_Cmd_tb
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name EDA_TEST_BENCH_FILE ../tb/cmd_tb.sv -section_id cmd_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE ../tb/uart_tx.v -section_id cmd_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE ../tb/uart.v -section_id cmd_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE ../tb/i2c_slave.v -section_id cmd_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE ../tb/i2c_master.v -section_id cmd_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE ../tb/uart_rx.v -section_id cmd_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../tb/Top_Cmd_tb.sv -section_id Top_Cmd_tb
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
