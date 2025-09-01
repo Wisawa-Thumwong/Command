@@ -33,6 +33,7 @@ module cmd_tb ();
     reg m_cmd_tvalid;
     wire m_cmd_tready;
     reg m_cmd_tlast;
+    wire INT_Pin;
 
 //===========================================================================================
 //UART
@@ -69,7 +70,8 @@ module cmd_tb ();
     wire bus_control;
     wire bus_active ;
     wire missed_ack ;
-    reg [15:0] prescale;
+    reg [15:0] prescale_Uart;
+    reg [15:0] prescale_I2C;
     wire stop_on_idle;
 
 //===========================================================================================
@@ -98,7 +100,7 @@ module cmd_tb ();
         .rx_busy (rx_busy),
         .rx_overrun_error (rx_overrun_error),
         .rx_frame_error (rx_frame_error),
-        .prescale (prescale)
+        .prescale (prescale_Uart)
     );
 
     //For Test bench
@@ -114,7 +116,7 @@ module cmd_tb ();
         .s_axis_tready(rs_axis_tready),
         .txd(rxd),
         .busy(),
-        .prescale(prescale)
+        .prescale(prescale_Uart)
     );
 
     //Cmd
@@ -148,6 +150,7 @@ module cmd_tb ();
         .m_cmd_tvalid (m_cmd_tvalid),
         .m_cmd_tready (m_cmd_tready),
         .m_cmd_tlast (m_cmd_tlast),
+        .INT_Pin (INT_Pin),
         .missed_ack(missed_ack)
     );
 
@@ -182,7 +185,7 @@ module cmd_tb ();
         .bus_control (bus_control),
         .bus_active (bus_active),
         .missed_ack (missed_ack),
-        .prescale (prescale),
+        .prescale (prescale_I2C),
         .stop_on_idle (stop_on_idle)
     );
 
@@ -195,12 +198,14 @@ always begin #10 assign clk = ~clk; end
         rst <= 1;
         rs_axis_tdata <= 0;
         rs_axis_tvalid <= 0;
-        prescale <= 0;
+        prescale_Uart <= 0;
+        prescale_I2C <= 0;
         
         sda_i <= 1;
         #200
         rst <= 0;
-        prescale <= 20;
+        prescale_I2C <= 20;
+        prescale_Uart <= 434;
         
         sda_i <= 0;
 

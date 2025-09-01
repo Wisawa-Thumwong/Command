@@ -1,33 +1,73 @@
-module Cmd (
-    clk,
-    rstn,
-    tx_busy,
-    s_tdata,
-    s_tvalid,
-    s_tready,
-    m_tdata,
-    m_tvalid,
-    m_tready,
-    rx_busy,
-    rx_overrun_error,
-    rx_frame_error,
-    s_cmd_Addr,
-    s_cmd_start,
-    s_cmd_read,
-    s_cmd_write,
-    s_cmd_write_multiple,
-    s_cmd_stop,
-    s_cmd_valid,
-    s_cmd_ready,
-    s_cmd_tdata,
-    s_cmd_tvalid,
-    s_cmd_tready,
-    s_cmd_tlast,
-    m_cmd_tdata,
-    m_cmd_tvalid,
-    m_cmd_tready,
-    m_cmd_tlast,
-    missed_ack
+module Cmd #(
+        parameter CRC_En = 1'h0,
+        parameter [1:0] MAG_Tempco = 2'h0,
+        parameter [2:0] Conv_AVG = 3'h2,
+        parameter [1:0] I2C_Rd = 2'h0,
+        parameter [2:0] THR_Hyst = 3'h0,
+        parameter LP_Ln = 1'h1,
+        parameter I2C_Glitch_Filter = 1'h0,
+        parameter Trigger_Mode = 1'h0,
+        parameter [1:0] Operating_Mode = 2'h2,
+        parameter [3:0] MAG_CH_En = 4'h1,
+        parameter [3:0] SleepTime = 4'h2,
+        parameter T_Rate = 1'h1,
+        parameter INTB_Pol = 1'h1,
+        parameter MAG_THR_Dir = 1'h0,
+        parameter MAG_Gain_CH = 1'h0,
+        parameter [1:0] Angle_EN = 2'h0,
+        parameter X_Y_Range = 1'h0,
+        parameter Z_Range = 1'h0,
+        parameter [7:0] Threshold1 = 8'h0,
+        parameter [7:0] Threshold2 = 8'h0,
+        parameter [7:0] Threshold3 = 8'h0,
+        parameter [1:0] WOC_Sel = 2'h0,
+        parameter [1:0] Thr_Sel = 2'h1,
+        parameter [1:0] Angle_HYS = 2'h0,
+        parameter Angle_Offset_En = 1'h0,
+        parameter Angle_Offset_Dir = 1'h0,
+        parameter Result_INT = 1'h1,
+        parameter Threshold_INT = 1'h1,
+        parameter INT_State = 1'h0,
+        parameter [2:0] INT_Mode = 3'h3,
+        parameter INT_POL_En = 1'h0,
+        parameter Mask_INT = 1'h0,
+        parameter [7:0] Gain_X_THR_HI = 8'h0,
+        parameter [7:0] Offset1_Y_THR_HI = 8'h0,
+        parameter [7:0] Offset2_Z_THR_HI = 8'h0,
+        parameter [6:0] I2C_Address = 7'h68,
+        parameter I2C_Address_Update_En = 1'h0
+    )
+    (
+        clk,
+        rstn,
+        tx_busy,
+        s_tdata,
+        s_tvalid,
+        s_tready,
+        m_tdata,
+        m_tvalid,
+        m_tready,
+        rx_busy,
+        rx_overrun_error,
+        rx_frame_error,
+        s_cmd_Addr,
+        s_cmd_start,
+        s_cmd_read,
+        s_cmd_write,
+        s_cmd_write_multiple,
+        s_cmd_stop,
+        s_cmd_valid,
+        s_cmd_ready,
+        s_cmd_tdata,
+        s_cmd_tvalid,
+        s_cmd_tready,
+        s_cmd_tlast,
+        m_cmd_tdata,
+        m_cmd_tvalid,
+        m_cmd_tready,
+        m_cmd_tlast,
+        INT_Pin,
+        missed_ack
 );
 
     //systems
@@ -69,6 +109,7 @@ module Cmd (
     output reg m_cmd_tready;
     input wire m_cmd_tlast;
 
+    output reg INT_Pin;
     input wire missed_ack;
 
 
@@ -78,16 +119,17 @@ module Cmd (
 
 //State machine
 reg [3:0] state, n_state;
-localparam st_idel = 0;
-localparam st_target = 1;
-localparam st_regaddr = 2;
-localparam st_write = 3;
-localparam st_read = 4;
-localparam st_read_con = 5;
-localparam st_stop = 6;
+localparam st_idel = 1;
+localparam st_target = 2;
+localparam st_regaddr = 3;
+localparam st_write = 4;
+localparam st_read = 5;
+localparam st_read_con = 6;
+localparam st_stop = 7;
 
 //Internal Signal
 reg [5:0] cnt_cmd;
+reg [5:0] cnt_int;
 
 //Output I2C 
 reg rs_cmd_start;
@@ -116,35 +158,82 @@ reg Conversion;
 reg [6:0] reg_addr;
 
 //Real Command Parameter
-/*reg [7:0] command1 = 8'b00000001;
-reg [7:0] command2 = 8'b00010110;
-reg [7:0] command3 = 8'b00010000;
-reg [7:0] command4 = 8'b11000000;
-reg [7:0] command5 = 8'b00000000;
-reg [7:0] command6 = 8'b00000000;
-reg [7:0] command7 = 8'b00000000;
-reg [7:0] command8 = 8'b00000000;
-reg [7:0] command9 = 8'b11000100;
-reg [7:0] command10 = 8'b00000000;
-reg [7:0] command11 = 8'b00000000;
-reg [7:0] command12 = 8'b00000000;
-reg [7:0] command13 = 8'b00011101;*/
+reg [7:0] command1 = {CRC_En,MAG_Tempco,Conv_AVG,I2C_Rd};
+reg [7:0] command2 = {THR_Hyst,LP_Ln,I2C_Glitch_Filter,Trigger_Mode,Operating_Mode};
+reg [7:0] command3 = {MAG_CH_En,SleepTime};
+reg [7:0] command4 = {T_Rate,INTB_Pol,MAG_THR_Dir,MAG_Gain_CH,Angle_EN,X_Y_Range,Z_Range};
+reg [7:0] command5 = {Threshold1};
+reg [7:0] command6 = {Threshold2};
+reg [7:0] command7 = {Threshold3};
+reg [7:0] command8 = {WOC_Sel,Thr_Sel,Angle_HYS,Angle_Offset_En,Angle_Offset_Dir};
+reg [7:0] command9 = {Result_INT,Threshold_INT,INT_State,INT_Mode,INT_POL_En,Mask_INT};
+reg [7:0] command10 = {Gain_X_THR_HI};
+reg [7:0] command11 = {Offset1_Y_THR_HI};
+reg [7:0] command12 = {Offset2_Z_THR_HI};
+reg [7:0] command13 = {I2C_Address,I2C_Address_Update_En};
+
+/*reg CRC_En = 1'h0;
+reg [1:0] MAG_Tempco = 2'h0;
+reg [2:0] Conv_AVG = 3'h0;
+reg [1:0] I2C_Rd = 2'h1;
+
+reg [2:0] THR_Hyst = 3'h0;
+reg LP_Ln = 1'h1;
+reg I2C_Glitch_Filter = 1'h0;
+reg Trigger_Mode = 1'h0;
+reg [1:0] Operating_Mode = 2'h2;
+
+reg [3:0] MAG_CH_En = 4'h1;
+reg [3:0] SleepTime = 4'h0;
+
+reg T_Rate = 1'h1;
+reg INTB_Pol = 1'h1;
+reg MAG_THR_Dir = 1'h0;
+reg MAG_Gain_CH = 1'h0;
+reg [1:0] Angle_EN = 2'h0;
+reg X_Y_Range = 1'h0;
+reg Z_Range = 1'h0;
+
+reg [7:0] Threshold1 = 8'h0;
+reg [7:0] Threshold2 = 8'h0;
+reg [7:0] Threshold3 = 8'h0;
+
+reg [1:0] WOC_Sel = 2'h0;
+reg [1:0] Thr_Sel = 2'h1;
+reg [1:0] Angle_HYS = 2'h0;
+reg Angle_Offset_En = 1'h0;
+reg Angle_Offset_Dir = 1'h0;
+
+reg Result_INT = 1'h1;
+reg Threshold_INT = 1'h1;
+reg INT_State = 1'h0;
+reg [2:0] INT_Mode = 3'h1;
+reg INT_POL_En = 1'h0;
+reg Mask_INT = 1'h0;
+
+reg [7:0] Gain_X_THR_HI = 8'h0;
+reg [7:0] Offset1_Y_THR_HI = 8'h0;
+reg [7:0] Offset2_Z_THR_HI = 8'h0;
+
+reg [6:0] I2C_Address = 7'h0;
+reg I2C_Address_Update_En = 1'h0;*/
+
 
 //Test Data Command Parameter
-reg [7:0] command1 = 8'd01;
-reg [7:0] command2 = 8'd02;
-reg [7:0] command3 = 8'd03;
-reg [7:0] command4 = 8'd04;
-reg [7:0] command5 = 8'd05;
-reg [7:0] command6 = 8'd06;
-reg [7:0] command7 = 8'd07;
-reg [7:0] command8 = 8'd08;
-reg [7:0] command9 = 8'd09;
-reg [7:0] command10 = 8'd10;
-reg [7:0] command11 = 8'd11;
-reg [7:0] command12 = 8'd12;
-reg [7:0] command13 = 8'd13;
-
+/*reg [7:0] command1 = 8'b0_00_010_00;                //{CRC_En,MAG_Tempco,Conv_AVG,I2C_Rd};
+reg [7:0] command2 = 8'b000_1_0_0_10;               //{THR_Hyst,LP_Ln,I2C_Glitch_Filter,Trigger_Mode,Operating_Mode};
+reg [7:0] command3 = 8'b0001_0010;                  //{MAG_CH_En,SleepTime};
+reg [7:0] command4 = 8'b1_1_0_0_00_0_0;             //{T_Rate,INTB_Pol,MAG_THR_Dir,MAG_Gain_CH,Angle_EN,X_Y_Range,Z_Range};
+reg [7:0] command5 = 8'b00000000;                   //{Threshold1};
+reg [7:0] command6 = 8'b00000000;                   //{Threshold2};
+reg [7:0] command7 = 8'b00000000;                   //{Threshold3};
+reg [7:0] command8 = 8'b00_01_00_0_0;               //{WOC_Sel,Thr_Sel,Angle_HYS,Angle_Offset_En,Angle_Offset_Dir};
+reg [7:0] command9 = 8'b1_1_0_011_0_0;              //{Result_INT,Threshold_INT,INT_State,INT_Mode,INT_POL_En,Mask_INT};
+reg [7:0] command10 = 8'b00000000;                  //{Gain_X_THR_HI};
+reg [7:0] command11 = 8'b00000000;                  //{Offset1_Y_THR_HI};
+reg [7:0] command12 = 8'b00000000;                  //{Offset2_Z_THR_HI};
+reg [7:0] command13 = 8'b0110110_0;                 //{I2C_Address,I2C_Address_Update_En};
+*/
 
 //===============================================================================================
 //Assignment
@@ -163,15 +252,12 @@ assign m_cmd_tready = rm_cmd_tready;
 assign s_tdata = rs_tdata;
 assign s_tvalid = rs_tvalid;
 
+//assign INT_Pin = rs_cmd_start;
 
 //===============================================================================================
     //State Machine
     always@ (posedge clk) begin 
-        if (!rstn) begin
-            state <= st_idel;
-        end else begin
-            state <= n_state;
-        end 
+        state <= n_state;
     end
 
     //Next State
@@ -181,7 +267,14 @@ assign s_tvalid = rs_tvalid;
         end else begin
             case (state) 
                 //Rx Start Send Data to Command Block
-                st_idel : n_state = (rx_busy == 1) ? st_target : st_idel;
+                st_idel :   if (rx_busy == 1) begin
+                                n_state <= st_target;
+                            end else if (n_state == st_target) begin
+                                            n_state <= n_state;
+                            end else begin
+                                n_state <= st_idel;
+                            end
+                //n_state = (rx_busy == 1) ? st_target : st_idel;
 
                 //Get Target Address and Read/Write Mode
                 st_target : if (m_tvalid == 1 && m_tready == 1) begin
@@ -229,7 +322,7 @@ assign s_tvalid = rs_tvalid;
 
                 //Receive Infomation data from senser
                 st_read_con : 
-                            if (m_tvalid == 1) begin
+                            if (m_tvalid == 1 && m_tready == 1) begin
                                 n_state <= st_stop;
                             end else begin
                                n_state <= st_read_con;
@@ -251,7 +344,7 @@ assign s_tvalid = rs_tvalid;
             RW_mode <= 0;
             RW_req <= 0;
         end else begin
-            if (state == st_target && m_tvalid == 1) begin
+            if (state == st_target) begin
                 Target_Addr <= m_tdata[7:1];
                 RW_mode <= m_tdata[0];
                 RW_req <= m_tdata[0];
@@ -299,8 +392,8 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             rs_cmd_start <= 0;
         end else begin
-            if (state == st_regaddr) begin                          //create start signal when already get Register Addr
-                if (m_tready == 1 && m_tvalid == 1) begin
+            if (state == st_read  && cnt_cmd == 0) begin                          //create start signal when already get Register Addr
+                if (s_cmd_tready == 1 && rs_cmd_valid == 1) begin
                     rs_cmd_start <= 1;
                 end else begin
                     rs_cmd_start <= 0;
@@ -324,6 +417,8 @@ assign s_tvalid = rs_tvalid;
         end else begin
             if (state == st_stop) begin
                 rs_cmd_stop <= 1;
+            end else if (state == st_read && cnt_cmd == 1) begin
+                rs_cmd_stop <= 1;
             end else begin
                 rs_cmd_stop <= 0;
             end
@@ -335,9 +430,11 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             rs_cmd_valid <= 0;
         end else begin
-            if (state == st_write) begin
+            if (state == st_write && s_cmd_ready == 1) begin
                 rs_cmd_valid <= 1;
-            end else if(state == st_read) begin
+            end else if(state == st_read && s_cmd_ready == 1) begin
+                rs_cmd_valid <= 1;
+            end else if(state == st_read_con && s_cmd_ready == 1) begin
                 rs_cmd_valid <= 1;
             end else begin
                 rs_cmd_valid <= 0;
@@ -422,8 +519,9 @@ assign s_tvalid = rs_tvalid;
             end else if (state == st_read || state == st_read_con) begin
                 //Command For Read Mode
                 case (cnt_cmd)
+                    //0 : rs_cmd_tdata <= {Target_Addr,1'b0};
                     0 : rs_cmd_tdata <= {Conversion,reg_addr};
-                    1 : rs_cmd_tdata <= {Target_Addr,1'b1};
+                    //1 : rs_cmd_tdata <= {Target_Addr,1'b1};
                 endcase
             end
         end
@@ -444,7 +542,7 @@ assign s_tvalid = rs_tvalid;
                 end else begin
                     rs_cmd_tvalid <= 0;
                 end
-            end else if (state == st_read || state == st_read_con) begin
+            end else if (state == st_read) begin
                 if (s_cmd_tready == 1) begin
                     if (cnt_cmd == 3) begin                 //Last Read Command
                         rs_cmd_tvalid <= 0;
@@ -501,6 +599,34 @@ assign s_tvalid = rs_tvalid;
                 end else begin
                     rs_tvalid <= 0;
                 end
+            end
+        end
+    end
+
+    always@ (posedge clk) begin
+        if (!rstn) begin
+            cnt_int <= 0;
+        end else begin
+            if (state == st_read_con) begin
+                if (cnt_int == 30) begin
+                    cnt_int <= 0;
+                end else begin    
+                    cnt_int <= cnt_int + 1;
+                end
+            end else begin
+                cnt_int <= cnt_int;
+            end
+        end
+    end
+
+    always@ (posedge clk) begin
+        if (!rstn) begin
+            INT_Pin <= 0;
+        end else begin
+            if (state == st_read_con && cnt_int == 29) begin
+                INT_Pin <= 1;
+            end else begin
+                INT_Pin <= 0;
             end
         end
     end

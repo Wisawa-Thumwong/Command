@@ -5,7 +5,7 @@ module Top_Cmp(
     Rx,
     scl_pin,
     sda_pin,
-    prescale
+    INT_Pin
 );
 
     input wire clk;
@@ -17,12 +17,15 @@ module Top_Cmp(
     inout wire scl_pin;
     inout wire sda_pin;
 
-    input wire [15:0] prescale;
+    output reg INT_Pin;
+
 
 //===========================================================================================
 //Internal Signal
     //systems
     reg rst;            //Active High
+    reg [15:0] prescale_Uart = 54;
+    reg [15:0] prescale_I2C = 125;
 
     //Uart Tx
     reg [7:0]  s_axis_tdata;
@@ -69,7 +72,11 @@ module Top_Cmp(
     wire m_cmd_tready;
     reg m_cmd_tlast;
 
-
+    wire missed_ack;
+    wire busy;
+    wire bus_active;
+    wire bus_control;
+    wire stop_on_idle;
 
 //===========================================================================================
 //Assignment
@@ -102,11 +109,50 @@ assign sda_pin = sda_t ? 'hz : sda_o;
         .rx_busy (rx_busy),
         .rx_overrun_error (),
         .rx_frame_error (),
-        .prescale (prescale)
+        .prescale (prescale_Uart)
     );
 
     //Command Block
-    Cmd  u_Cmd(
+    Cmd  #(
+        .CRC_En(1'h0),
+        .MAG_Tempco(2'h0),
+        .Conv_AVG(3'h2),
+        .I2C_Rd(2'h0),
+        .THR_Hyst(3'h0),
+        .LP_Ln(1'h1),
+        .I2C_Glitch_Filter(1'h0),
+        .Trigger_Mode(1'h0),
+        .Operating_Mode(2'h2),
+        .MAG_CH_En(4'h1),
+        .SleepTime(4'h2),
+        .T_Rate(1'h1),
+        .INTB_Pol(1'h1),
+        .MAG_THR_Dir(1'h0),
+        .MAG_Gain_CH(1'h0),
+        .Angle_EN(2'h0),
+        .X_Y_Range(1'h0),
+        .Z_Range(1'h0),
+        .Threshold1(8'h0),
+        .Threshold2(8'h0),
+        .Threshold3(8'h0),
+        .WOC_Sel(2'h0),
+        .Thr_Sel(2'h1),
+        .Angle_HYS(2'h0),
+        .Angle_Offset_En(1'h0),
+        .Angle_Offset_Dir(1'h0),
+        .Result_INT(1'h1),
+        .Threshold_INT(1'h1),
+        .INT_State(1'h0),
+        .INT_Mode(3'h3),
+        .INT_POL_En(1'h0),
+        .Mask_INT(1'h0),
+        .Gain_X_THR_HI(8'h0),
+        .Offset1_Y_THR_HI(8'h0),
+        .Offset2_Z_THR_HI(8'h0),
+        .I2C_Address(7'h68),
+        .I2C_Address_Update_En(1'h0)
+    )
+    u_Cmd(
         .clk (clk),
         .rstn (rstn),
 
@@ -136,6 +182,7 @@ assign sda_pin = sda_t ? 'hz : sda_o;
         .m_cmd_tvalid (m_cmd_tvalid),
         .m_cmd_tready (m_cmd_tready),
         .m_cmd_tlast (m_cmd_tlast),
+        .INT_Pin (INT_Pin),
         .missed_ack(missed_ack)
     );
 
@@ -170,15 +217,8 @@ assign sda_pin = sda_t ? 'hz : sda_o;
         .bus_control (bus_control),
         .bus_active (bus_active),
         .missed_ack (missed_ack),
-        .prescale (prescale),
+        .prescale (prescale_I2C),
         .stop_on_idle (stop_on_idle)
     );
-
-
-
-
-
-
-
 
 endmodule

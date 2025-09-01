@@ -212,6 +212,15 @@ reg busy_reg = 1'b0;
 reg bus_active_reg = 1'b0;
 reg bus_addressed_reg = 1'b0, bus_addressed_next;
 
+wire scl_posedge;
+wire scl_negedge;
+wire sda_posedge;
+wire sda_negedge;
+
+wire start_bit;
+wire stop_bit;
+
+
 assign bus_address = addr_reg;
 
 assign s_axis_data_tready = s_axis_data_tready_reg;
