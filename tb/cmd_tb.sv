@@ -198,8 +198,14 @@ always begin #10 assign clk = ~clk; end
         rst <= 1;
         rs_axis_tdata <= 0;
         rs_axis_tvalid <= 0;
-        prescale_Uart <= 0;
-        prescale_I2C <= 0;
+        prescale <= 0;
+        
+        /*enable <= 0;
+
+        //I2C Dummy
+        s_axis_data_tdata <= 0;
+        s_axis_data_tlast <= 0;
+        s_axis_data_tvalid <= 0;   */
         
         sda_i <= 1;
         #200
@@ -238,12 +244,7 @@ always begin #10 assign clk = ~clk; end
         rs_axis_tvalid <= 0;
         #14000
         #18500
-        rs_axis_tdata <= 8'b10111011;       //{Conversion "1" , Register Addr "0111011"}
-        rs_axis_tvalid <= 1;
-        #20
-        rs_axis_tvalid <= 0;
-        #200000
-        rs_axis_tdata <= 8'b10111011;       //Send Any command for stop
+        rs_axis_tdata <= 8'b10000011;
         rs_axis_tvalid <= 1;
         #20
         rs_axis_tvalid <= 0;

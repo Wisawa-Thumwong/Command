@@ -71,18 +71,23 @@ assign rst = ~rstn;
         prescale <= 54;
         //rs_axis_tready <= 1;
         #200
-        rs_axis_tdata <= 8'b01101001;        //Read Addr "0110100"
+        rs_axis_tdata <= 8'b01101000;        //Read Addr "0110100"
         rs_axis_tvalid <= 1;
         #20
         rs_axis_tvalid <= 0;
         #200000
         //#8000000
-        rs_axis_tdata <= 8'b10010100;       //{Conversion "1" , Register Addr "0010100"}
+        rs_axis_tdata <= 8'b10000000;       //{Conversion "1" , Register Addr "0010100"}
         rs_axis_tvalid <= 1;
         #20
         rs_axis_tvalid <= 0;
         #5500
         #6750
+        #1000000
+        rs_axis_tdata <= 8'b00000000;       //{Conversion "1" , Register Addr "0010100"}
+        rs_axis_tvalid <= 1;
+        #20
+        rs_axis_tvalid <= 0;
         /*
         #300000
         rstn <= 0;
@@ -106,7 +111,7 @@ assign rst = ~rstn;
         rs_axis_tvalid <= 1;
         #20
         rs_axis_tvalid <= 0;*/
-        #2000000
+        #1000000
         $finish;
 
     end

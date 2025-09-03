@@ -17,6 +17,8 @@
 *.vstf
 *.wlf
 *.tcl~
+*.txt
+*.stp
 
 #ignore db in Quartus.
 db/

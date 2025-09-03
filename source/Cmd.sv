@@ -129,7 +129,7 @@ localparam st_stop = 7;
 
 //Internal Signal
 reg [5:0] cnt_cmd;
-reg [5:0] cnt_int;
+reg [9:0] cnt_int;
 
 //Output I2C 
 reg rs_cmd_start;
@@ -140,13 +140,13 @@ reg RW_mode;
 //Output Axi To I2C
 reg [7:0] rs_cmd_tdata;
 reg rs_cmd_tvalid;
-//reg rs_cmd_tlast;
+reg rs_cmd_tlast;
 
 //Mt_Sl
 reg rm_cmd_tready;
 
 //Tx to UART
-reg rs_tdata;
+reg [7:0] rs_tdata;
 reg rs_tvalid;
 
 //Command From UART
@@ -172,69 +172,6 @@ reg [7:0] command11 = {Offset1_Y_THR_HI};
 reg [7:0] command12 = {Offset2_Z_THR_HI};
 reg [7:0] command13 = {I2C_Address,I2C_Address_Update_En};
 
-/*reg CRC_En = 1'h0;
-reg [1:0] MAG_Tempco = 2'h0;
-reg [2:0] Conv_AVG = 3'h0;
-reg [1:0] I2C_Rd = 2'h1;
-
-reg [2:0] THR_Hyst = 3'h0;
-reg LP_Ln = 1'h1;
-reg I2C_Glitch_Filter = 1'h0;
-reg Trigger_Mode = 1'h0;
-reg [1:0] Operating_Mode = 2'h2;
-
-reg [3:0] MAG_CH_En = 4'h1;
-reg [3:0] SleepTime = 4'h0;
-
-reg T_Rate = 1'h1;
-reg INTB_Pol = 1'h1;
-reg MAG_THR_Dir = 1'h0;
-reg MAG_Gain_CH = 1'h0;
-reg [1:0] Angle_EN = 2'h0;
-reg X_Y_Range = 1'h0;
-reg Z_Range = 1'h0;
-
-reg [7:0] Threshold1 = 8'h0;
-reg [7:0] Threshold2 = 8'h0;
-reg [7:0] Threshold3 = 8'h0;
-
-reg [1:0] WOC_Sel = 2'h0;
-reg [1:0] Thr_Sel = 2'h1;
-reg [1:0] Angle_HYS = 2'h0;
-reg Angle_Offset_En = 1'h0;
-reg Angle_Offset_Dir = 1'h0;
-
-reg Result_INT = 1'h1;
-reg Threshold_INT = 1'h1;
-reg INT_State = 1'h0;
-reg [2:0] INT_Mode = 3'h1;
-reg INT_POL_En = 1'h0;
-reg Mask_INT = 1'h0;
-
-reg [7:0] Gain_X_THR_HI = 8'h0;
-reg [7:0] Offset1_Y_THR_HI = 8'h0;
-reg [7:0] Offset2_Z_THR_HI = 8'h0;
-
-reg [6:0] I2C_Address = 7'h0;
-reg I2C_Address_Update_En = 1'h0;*/
-
-
-//Test Data Command Parameter
-/*reg [7:0] command1 = 8'b0_00_010_00;                //{CRC_En,MAG_Tempco,Conv_AVG,I2C_Rd};
-reg [7:0] command2 = 8'b000_1_0_0_10;               //{THR_Hyst,LP_Ln,I2C_Glitch_Filter,Trigger_Mode,Operating_Mode};
-reg [7:0] command3 = 8'b0001_0010;                  //{MAG_CH_En,SleepTime};
-reg [7:0] command4 = 8'b1_1_0_0_00_0_0;             //{T_Rate,INTB_Pol,MAG_THR_Dir,MAG_Gain_CH,Angle_EN,X_Y_Range,Z_Range};
-reg [7:0] command5 = 8'b00000000;                   //{Threshold1};
-reg [7:0] command6 = 8'b00000000;                   //{Threshold2};
-reg [7:0] command7 = 8'b00000000;                   //{Threshold3};
-reg [7:0] command8 = 8'b00_01_00_0_0;               //{WOC_Sel,Thr_Sel,Angle_HYS,Angle_Offset_En,Angle_Offset_Dir};
-reg [7:0] command9 = 8'b1_1_0_011_0_0;              //{Result_INT,Threshold_INT,INT_State,INT_Mode,INT_POL_En,Mask_INT};
-reg [7:0] command10 = 8'b00000000;                  //{Gain_X_THR_HI};
-reg [7:0] command11 = 8'b00000000;                  //{Offset1_Y_THR_HI};
-reg [7:0] command12 = 8'b00000000;                  //{Offset2_Z_THR_HI};
-reg [7:0] command13 = 8'b0110110_0;                 //{I2C_Address,I2C_Address_Update_En};
-*/
-
 //===============================================================================================
 //Assignment
 assign s_cmd_Addr = Target_Addr;
@@ -245,21 +182,45 @@ assign s_cmd_valid = rs_cmd_valid;
 
 assign s_cmd_tdata = rs_cmd_tdata;
 assign s_cmd_tvalid = rs_cmd_tvalid;
-assign s_cmd_tlast = rs_cmd_stop;
+assign s_cmd_tlast = rs_cmd_tlast;
 
 assign m_cmd_tready = rm_cmd_tready;
 
 assign s_tdata = rs_tdata;
 assign s_tvalid = rs_tvalid;
 
-//assign INT_Pin = rs_cmd_start;
-
 //===============================================================================================
     //State Machine
     always@ (posedge clk) begin 
-        state <= n_state;
+        if (!rstn) begin
+            state <= st_idel;
+        end else begin
+            state <= n_state;
+        end
     end
 
+    always@ (posedge clk) begin 
+        if (!rstn) begin
+            rs_cmd_tlast <= 0;
+        end else begin
+            if (state == st_write) begin
+                if (s_cmd_tready == 1 && cnt_cmd == 13) begin
+                    rs_cmd_tlast <= 1;
+                end else begin
+                    rs_cmd_tlast <= 0;
+                end
+            end else if (state == st_read) begin
+                if (s_cmd_tready == 1 && cnt_cmd == 0) begin
+                    rs_cmd_tlast <= 1;
+                end else begin
+                    rs_cmd_tlast <= 0;
+                end
+            end else begin
+                rs_cmd_tlast <= 0;
+            end
+        end
+    end
+    
     //Next State
     always@ (posedge clk) begin
         if (!rstn) begin
@@ -304,7 +265,7 @@ assign s_tvalid = rs_tvalid;
                             end
                 
                 //Write Command to Senser
-                st_write :  if (cnt_cmd == 13 && s_cmd_tready == 1 && s_cmd_tvalid == 1) begin
+                st_write :  if (cnt_cmd == 14 && s_cmd_ready == 1 && s_cmd_write == 0) begin
                                 n_state <= st_stop;
                             end else begin
                                 n_state <= n_state; 
@@ -312,7 +273,7 @@ assign s_tvalid = rs_tvalid;
                 
                 //Read State send Senser Start Command 
                 st_read : 
-                            if (cnt_cmd == 1 && s_cmd_tready == 1 && s_cmd_tvalid == 1) begin
+                            if (cnt_cmd == 1 && s_cmd_stop == 1 && s_cmd_valid == 1 && s_cmd_ready == 1) begin
                                 n_state <= st_read_con;
                             end else if(n_state == st_read_con) begin
                                 n_state <= n_state;
@@ -322,7 +283,7 @@ assign s_tvalid = rs_tvalid;
 
                 //Receive Infomation data from senser
                 st_read_con : 
-                            if (m_tvalid == 1 && m_tready == 1) begin
+                            if (rx_busy == 1) begin
                                 n_state <= st_stop;
                             end else begin
                                n_state <= st_read_con;
@@ -392,14 +353,20 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             rs_cmd_start <= 0;
         end else begin
-            if (state == st_read  && cnt_cmd == 0) begin                          //create start signal when already get Register Addr
-                if (s_cmd_tready == 1 && rs_cmd_valid == 1) begin
+            if (state == st_write) begin
+                if (s_cmd_ready == 1 && cnt_cmd == 0) begin
                     rs_cmd_start <= 1;
                 end else begin
                     rs_cmd_start <= 0;
                 end
-            end else if(state == st_read && cnt_cmd == 1) begin     //create start signal when send 1st Target Addr and Re-Start Signal
-                if (s_cmd_tready == 1 && rs_cmd_tvalid == 1) begin
+            end else if (state == st_read  && cnt_cmd == 0) begin                          //create start signal when already get Register Addr
+                if (s_cmd_ready == 1) begin
+                    rs_cmd_start <= 1;
+                end else begin
+                    rs_cmd_start <= 0;
+                end
+            end else if(state == st_read_con) begin     //create start signal when send 1st Target Addr and Re-Start Signal
+                if (s_cmd_ready == 1 && cnt_cmd != 2) begin
                     rs_cmd_start <= 1;
                 end else begin
                     rs_cmd_start <= 0;
@@ -415,10 +382,25 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             rs_cmd_stop  <= 0;
         end else begin
-            if (state == st_stop) begin
-                rs_cmd_stop <= 1;
+            if (state == st_write) begin
+                if (s_cmd_ready == 1 && cnt_cmd == 14) begin
+                    rs_cmd_stop <= 1;
+                end else begin
+                    rs_cmd_stop <= 0;
+                end
+            end else if (state == st_read) begin
+                if (s_cmd_ready == 1 && cnt_cmd == 1) begin
+                    rs_cmd_stop <= 1;
+                end else begin
+                    rs_cmd_stop <= 0;
+                end
+            
             end else if (state == st_read && cnt_cmd == 1) begin
-                rs_cmd_stop <= 1;
+                if (s_cmd_tready == 1 && rs_cmd_tvalid == 1) begin
+                    rs_cmd_stop <= 1;
+                end else begin
+                    rs_cmd_stop <= 0;
+                end
             end else begin
                 rs_cmd_stop <= 0;
             end
@@ -430,12 +412,16 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             rs_cmd_valid <= 0;
         end else begin
-            if (state == st_write && s_cmd_ready == 1) begin
-                rs_cmd_valid <= 1;
-            end else if(state == st_read && s_cmd_ready == 1) begin
-                rs_cmd_valid <= 1;
-            end else if(state == st_read_con && s_cmd_ready == 1) begin
-                rs_cmd_valid <= 1;
+            if (s_cmd_ready == 1) begin
+                if (state == st_write) begin
+                    rs_cmd_valid <= 1;
+                end else if (state == st_read) begin
+                    rs_cmd_valid <= 1;
+                end else if (state == st_read_con) begin
+                    rs_cmd_valid <= 1;
+                end else begin
+                    rs_cmd_valid <= 0;
+                end 
             end else begin
                 rs_cmd_valid <= 0;
             end
@@ -448,7 +434,7 @@ assign s_tvalid = rs_tvalid;
             cnt_cmd <= 0;
         end else begin
             if (state == st_write) begin
-                if (cnt_cmd == 14) begin
+                if (cnt_cmd == 15) begin
                     cnt_cmd <= 0;
                 end else if (s_cmd_tready == 1 && rs_cmd_tvalid == 1) begin
                     cnt_cmd <= cnt_cmd + 1;
@@ -463,6 +449,16 @@ assign s_tvalid = rs_tvalid;
                 end else begin
                     cnt_cmd <= cnt_cmd;
                 end
+            end else if (state == st_read_con) begin
+                if (cnt_cmd == 2) begin
+                    cnt_cmd <= cnt_cmd;
+                end else if (s_cmd_start == 1) begin
+                    cnt_cmd <= cnt_cmd + 1;
+                end else begin
+                    cnt_cmd <= cnt_cmd;
+                end
+            end else begin
+                cnt_cmd <= 0;
             end
         end
     end
@@ -472,8 +468,18 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             s_cmd_write <= 0;
         end else begin
-            if (state == st_read || state == st_write) begin
-                s_cmd_write <= 1;
+            if (state == st_write) begin
+                if (cnt_cmd != 14) begin
+                    s_cmd_write <= 1;
+                end else begin
+                    s_cmd_write <= 0;
+                end
+            end else if (state == st_read) begin
+                if (cnt_cmd == 1) begin
+                    s_cmd_write <= 0;
+                end else begin
+                    s_cmd_write <= 1;
+                end 
             end else begin
                 s_cmd_write <= 0;
             end
@@ -516,12 +522,14 @@ assign s_tvalid = rs_tvalid;
                     12 : rs_cmd_tdata <= command12;
                     13 : rs_cmd_tdata <= command13;
                 endcase
-            end else if (state == st_read || state == st_read_con) begin
+            end else if (state == st_read) begin
                 //Command For Read Mode
                 case (cnt_cmd)
                     //0 : rs_cmd_tdata <= {Target_Addr,1'b0};
                     0 : rs_cmd_tdata <= {Conversion,reg_addr};
-                    //1 : rs_cmd_tdata <= {Target_Addr,1'b1};
+                    1 : rs_cmd_tdata <= {Target_Addr,1'b1};
+                    2 : rs_cmd_tdata <= 1'hx;
+                    3 : rs_cmd_tdata <= 1'hx;
                 endcase
             end
         end
@@ -535,7 +543,7 @@ assign s_tvalid = rs_tvalid;
             if (state == st_write) begin
                 if (s_cmd_tready == 1) begin
                     if (cnt_cmd == 14) begin                //Last Write Command
-                        rs_cmd_tvalid <= 0;
+                        rs_cmd_tvalid <= rs_cmd_tvalid;
                     end else begin
                         rs_cmd_tvalid <= 1;
                     end
@@ -544,10 +552,20 @@ assign s_tvalid = rs_tvalid;
                 end
             end else if (state == st_read) begin
                 if (s_cmd_tready == 1) begin
-                    if (cnt_cmd == 3) begin                 //Last Read Command
+                    if (cnt_cmd == 1) begin                 //Last Read Command
                         rs_cmd_tvalid <= 0;
                     end else begin
                         rs_cmd_tvalid <= 1;
+                    end
+                end else begin
+                    rs_cmd_tvalid <= 0;
+                end
+            end else if (state == st_read_con) begin
+                if (s_cmd_tready == 1) begin
+                    if (cnt_cmd == 1) begin
+                        rs_cmd_tvalid <= 1;
+                    end else begin
+                        rs_cmd_tvalid <= 0;
                     end
                 end else begin
                     rs_cmd_tvalid <= 0;
@@ -608,7 +626,7 @@ assign s_tvalid = rs_tvalid;
             cnt_int <= 0;
         end else begin
             if (state == st_read_con) begin
-                if (cnt_int == 30) begin
+                if (cnt_int == 10) begin
                     cnt_int <= 0;
                 end else begin    
                     cnt_int <= cnt_int + 1;
@@ -623,7 +641,7 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             INT_Pin <= 0;
         end else begin
-            if (state == st_read_con && cnt_int == 29) begin
+            if (state == st_read_con && cnt_int == 9) begin
                 INT_Pin <= 1;
             end else begin
                 INT_Pin <= 0;
