@@ -5,7 +5,10 @@ module Top_Cmp(
     Rx,
     scl_pin,
     sda_pin,
-    INT_Pin
+    INT_Pin,
+
+    sm_cmd_tdata,
+    sm_cmd_tvalid
 );
 
     input wire clk;
@@ -18,6 +21,9 @@ module Top_Cmp(
     inout wire sda_pin;
 
     output reg INT_Pin;
+
+    output reg [7:0] sm_cmd_tdata;
+    output reg sm_cmd_tvalid;
 
 
 //===========================================================================================
@@ -87,6 +93,9 @@ assign scl_pin = scl_t ? 'hz : scl_o;
 assign sda_i = sda_pin;
 assign sda_pin = sda_t ? 'hz : sda_o;
 
+assign sm_cmd_tdata = m_cmd_tdata;
+assign sm_cmd_tvalid = m_cmd_tvalid;
+
 //===========================================================================================
 //Component
     //UART
@@ -114,19 +123,19 @@ assign sda_pin = sda_t ? 'hz : sda_o;
 
     //Command Block
     Cmd  #(
-        .CRC_En(1'h0),
+        .CRC_En(1'h1), 
         .MAG_Tempco(2'h0),
-        .Conv_AVG(3'h2),
+        .Conv_AVG(3'h0),
         .I2C_Rd(2'h0),
         .THR_Hyst(3'h0),
-        .LP_Ln(1'h1),
-        .I2C_Glitch_Filter(1'h1),
-        .Trigger_Mode(1'h1),
-        .Operating_Mode(2'h0),
+        .LP_Ln(1'h0),
+        .I2C_Glitch_Filter(1'h0),
+        .Trigger_Mode(1'h0),   
+        .Operating_Mode(2'h2),
         .MAG_CH_En(4'h1),
-        .SleepTime(4'h2),
-        .T_Rate(1'h1),
-        .INTB_Pol(1'h1),
+        .SleepTime(4'h0),
+        .T_Rate(1'h0),
+        .INTB_Pol(1'h0),
         .MAG_THR_Dir(1'h0),
         .MAG_Gain_CH(1'h0),
         .Angle_EN(2'h0),
@@ -136,16 +145,16 @@ assign sda_pin = sda_t ? 'hz : sda_o;
         .Threshold2(8'h0),
         .Threshold3(8'h0),
         .WOC_Sel(2'h0),
-        .Thr_Sel(2'h1),
+        .Thr_Sel(2'h0),
         .Angle_HYS(2'h0),
         .Angle_Offset_En(1'h0),
         .Angle_Offset_Dir(1'h0),
-        .Result_INT(1'h1),
-        .Threshold_INT(1'h1),
-        .INT_State(1'h1),
-        .INT_Mode(3'h1),
+        .Result_INT(1'h0),
+        .Threshold_INT(1'h0),
+        .INT_State(1'h0),
+        .INT_Mode(3'h0),  
         .INT_POL_En(1'h0),
-        .Mask_INT(1'h0),
+        .Mask_INT(1'h0), 
         .Gain_X_THR_HI(8'h0),
         .Offset1_Y_THR_HI(8'h0),
         .Offset2_Z_THR_HI(8'h0),

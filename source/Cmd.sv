@@ -1,41 +1,41 @@
 module Cmd #(
-        parameter CRC_En = 1'h0,
-        parameter [1:0] MAG_Tempco = 2'h0,
-        parameter [2:0] Conv_AVG = 3'h2,
-        parameter [1:0] I2C_Rd = 2'h0,
-        parameter [2:0] THR_Hyst = 3'h0,
-        parameter LP_Ln = 1'h1,
-        parameter I2C_Glitch_Filter = 1'h0,
-        parameter Trigger_Mode = 1'h0,
-        parameter [1:0] Operating_Mode = 2'h2,
-        parameter [3:0] MAG_CH_En = 4'h1,
-        parameter [3:0] SleepTime = 4'h2,
-        parameter T_Rate = 1'h1,
-        parameter INTB_Pol = 1'h1,
-        parameter MAG_THR_Dir = 1'h0,
-        parameter MAG_Gain_CH = 1'h0,
-        parameter [1:0] Angle_EN = 2'h0,
-        parameter X_Y_Range = 1'h0,
-        parameter Z_Range = 1'h0,
-        parameter [7:0] Threshold1 = 8'h0,
-        parameter [7:0] Threshold2 = 8'h0,
-        parameter [7:0] Threshold3 = 8'h0,
-        parameter [1:0] WOC_Sel = 2'h0,
-        parameter [1:0] Thr_Sel = 2'h1,
-        parameter [1:0] Angle_HYS = 2'h0,
-        parameter Angle_Offset_En = 1'h0,
-        parameter Angle_Offset_Dir = 1'h0,
-        parameter Result_INT = 1'h1,
-        parameter Threshold_INT = 1'h1,
-        parameter INT_State = 1'h0,
-        parameter [2:0] INT_Mode = 3'h3,
-        parameter INT_POL_En = 1'h0,
-        parameter Mask_INT = 1'h0,
-        parameter [7:0] Gain_X_THR_HI = 8'h0,
-        parameter [7:0] Offset1_Y_THR_HI = 8'h0,
-        parameter [7:0] Offset2_Z_THR_HI = 8'h0,
-        parameter [6:0] I2C_Address = 7'h68,
-        parameter I2C_Address_Update_En = 1'h0
+        parameter CRC_En,
+        parameter [1:0] MAG_Tempco,
+        parameter [2:0] Conv_AVG,
+        parameter [1:0] I2C_Rd,
+        parameter [2:0] THR_Hyst,
+        parameter LP_Ln,
+        parameter I2C_Glitch_Filter,
+        parameter Trigger_Mode,
+        parameter [1:0] Operating_Mode,
+        parameter [3:0] MAG_CH_En,
+        parameter [3:0] SleepTime,
+        parameter T_Rate,
+        parameter INTB_Pol,
+        parameter MAG_THR_Dir,
+        parameter MAG_Gain_CH,
+        parameter [1:0] Angle_EN,
+        parameter X_Y_Range,
+        parameter Z_Range,
+        parameter [7:0] Threshold1,
+        parameter [7:0] Threshold2,
+        parameter [7:0] Threshold3,
+        parameter [1:0] WOC_Sel,
+        parameter [1:0] Thr_Sel,
+        parameter [1:0] Angle_HYS,
+        parameter Angle_Offset_En,
+        parameter Angle_Offset_Dir,
+        parameter Result_INT,
+        parameter Threshold_INT,
+        parameter INT_State ,
+        parameter [2:0] INT_Mode,
+        parameter INT_POL_En,
+        parameter Mask_INT,
+        parameter [7:0] Gain_X_THR_HI,
+        parameter [7:0] Offset1_Y_THR_HI,
+        parameter [7:0] Offset2_Z_THR_HI,
+        parameter [6:0] I2C_Address,
+        parameter I2C_Address_Update_En
     )
     (
         clk,
@@ -583,7 +583,7 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             rm_cmd_tready <= 0;
         end else begin
-            if (!tx_busy && state == st_read_con) begin         //Tx not busy && in Read mode
+            if (state == st_read_con) begin         //Tx not busy && in Read mode
                 rm_cmd_tready <= s_tready;
             end else begin
                 rm_cmd_tready <= 0;
@@ -626,10 +626,14 @@ assign s_tvalid = rs_tvalid;
             cnt_int <= 0;
         end else begin
             if (state == st_read_con) begin
-                if (cnt_int == 10) begin
-                    cnt_int <= 0;
-                end else begin    
-                    cnt_int <= cnt_int + 1;
+                if (rm_cmd_tready == 1 && m_cmd_tvalid == 1) begin
+                    if (cnt_int == 50) begin
+                        cnt_int <= 0;
+                    end else begin    
+                        cnt_int <= cnt_int + 1;
+                    end
+                end else begin
+                    cnt_int <= cnt_int;
                 end
             end else begin
                 cnt_int <= cnt_int;
@@ -641,7 +645,7 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             INT_Pin <= 0;
         end else begin
-            if (state == st_read_con && cnt_int == 9) begin
+            if (state == st_read_con && cnt_int == 49) begin
                 INT_Pin <= 1;
             end else begin
                 INT_Pin <= 0;

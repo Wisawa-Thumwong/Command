@@ -13,7 +13,7 @@ module Top_Cmd_tb ();
     wand scl_pin;
     wand sda_pin;
 
-    wire INT_Pin;
+    reg INT_Pin;
 
     reg [7:0] rs_axis_tdata;
     reg rs_axis_tvalid;
@@ -71,7 +71,7 @@ assign rst = ~rstn;
         prescale <= 54;
         //rs_axis_tready <= 1;
         #200
-        rs_axis_tdata <= 8'b01101000;        //Read Addr "0110100"
+        rs_axis_tdata <= 8'b01101001;        //Read Addr "0110100"
         rs_axis_tvalid <= 1;
         #20
         rs_axis_tvalid <= 0;
