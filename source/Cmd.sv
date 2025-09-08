@@ -66,7 +66,9 @@ module Cmd #(
         m_cmd_tvalid,
         m_cmd_tready,
         m_cmd_tlast,
-        INT_Pin,
+        INT_In,
+        INT_Out,
+        INT_t,
         missed_ack
 );
 
@@ -109,23 +111,24 @@ module Cmd #(
     output reg m_cmd_tready;
     input wire m_cmd_tlast;
 
-    output reg INT_Pin;
+    input wire INT_In;
+    output reg INT_Out;
+    output reg INT_t;
+
     input wire missed_ack;
-
-
 
 //===============================================================================================
 //Internal Signal
-
 //State machine
 reg [3:0] state, n_state;
-localparam st_idel = 1;
-localparam st_target = 2;
-localparam st_regaddr = 3;
-localparam st_write = 4;
-localparam st_read = 5;
-localparam st_read_con = 6;
-localparam st_stop = 7;
+localparam st_idel = 1;                 //Idel State
+localparam st_target = 2;               //Get Target State
+localparam st_regaddr = 3;              //Get Register State
+localparam st_write = 4;                //Sent Write Command State
+localparam st_read = 5;                 //Sent Read Command State
+localparam st_receive = 6;             //Receives Data From Senser State
+localparam st_Int = 7;                  //Interupt State
+localparam st_stop = 8;                 //Generate Stop Condition State
 
 //Internal Signal
 reg [5:0] cnt_cmd;
@@ -136,13 +139,13 @@ reg rs_cmd_start;
 reg rs_cmd_write_multiple = 0;
 reg rs_cmd_stop;
 reg rs_cmd_valid;
-reg RW_mode;
+
 //Output Axi To I2C
 reg [7:0] rs_cmd_tdata;
 reg rs_cmd_tvalid;
 reg rs_cmd_tlast;
 
-//Mt_Sl
+//Cmd To I2C
 reg rm_cmd_tready;
 
 //Tx to UART
@@ -189,6 +192,8 @@ assign m_cmd_tready = rm_cmd_tready;
 assign s_tdata = rs_tdata;
 assign s_tvalid = rs_tvalid;
 
+assign INT_t = INT_Out;
+
 //===============================================================================================
     //State Machine
     always@ (posedge clk) begin 
@@ -199,6 +204,7 @@ assign s_tvalid = rs_tvalid;
         end
     end
 
+    //tlast Signal Cmd to I2C
     always@ (posedge clk) begin 
         if (!rstn) begin
             rs_cmd_tlast <= 0;
@@ -221,7 +227,7 @@ assign s_tvalid = rs_tvalid;
         end
     end
     
-    //Next State
+    //Next State Machine
     always@ (posedge clk) begin
         if (!rstn) begin
             n_state <= st_idel;
@@ -235,7 +241,6 @@ assign s_tvalid = rs_tvalid;
                             end else begin
                                 n_state <= st_idel;
                             end
-                //n_state = (rx_busy == 1) ? st_target : st_idel;
 
                 //Get Target Address and Read/Write Mode
                 st_target : if (m_tvalid == 1 && m_tready == 1) begin
@@ -264,29 +269,45 @@ assign s_tvalid = rs_tvalid;
                                 n_state <= st_regaddr;
                             end
                 
-                //Write Command to Senser
+                //Sent Write Command to Senser
                 st_write :  if (cnt_cmd == 14 && s_cmd_ready == 1 && s_cmd_write == 0) begin
                                 n_state <= st_stop;
                             end else begin
                                 n_state <= n_state; 
                             end
                 
-                //Read State send Senser Start Command 
+                //Sent Read Command to Sensor
                 st_read : 
                             if (cnt_cmd == 1 && s_cmd_stop == 1 && s_cmd_valid == 1 && s_cmd_ready == 1) begin
-                                n_state <= st_read_con;
-                            end else if(n_state == st_read_con) begin
-                                n_state <= n_state;
+                                n_state <= st_receive;
+                            end else if(n_state == st_receive) begin
+                                n_state <= st_receive;
                             end else begin
                                 n_state <= st_read;
                             end
 
-                //Receive Infomation data from senser
-                st_read_con : 
+                //Receive data from senser
+                st_receive : 
                             if (rx_busy == 1) begin
                                 n_state <= st_stop;
                             end else begin
-                               n_state <= st_read_con;
+                                if (cnt_int == 13) begin
+                                    n_state <= st_Int;
+                                end else begin
+                                    n_state <= st_receive;
+                                end
+                            end
+
+                //Interupt State
+                st_Int :
+                            if (rx_busy == 1) begin              
+                                //n_state <= st_stop;
+                            end else begin
+                                if (s_cmd_ready == 1) begin
+                                    n_state <= st_read;
+                                end else begin
+                                    n_state <= n_state;
+                                end
                             end
 
                 //Create Stop signal condition
@@ -302,16 +323,13 @@ assign s_tvalid = rs_tvalid;
     always@ (posedge clk) begin
         if (!rstn) begin
             Target_Addr <= 0;
-            RW_mode <= 0;
             RW_req <= 0;
         end else begin
             if (state == st_target) begin
                 Target_Addr <= m_tdata[7:1];
-                RW_mode <= m_tdata[0];
                 RW_req <= m_tdata[0];
             end else begin
                 Target_Addr <= Target_Addr;
-                RW_mode <= RW_mode;
                 RW_req <= RW_req;
             end
         end
@@ -338,7 +356,7 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             m_tready <= 0;
         end else begin
-            if (state == st_write || state == st_read || state == st_stop || state == st_read_con) begin
+            if (state == st_write || state == st_read || state == st_stop || state == st_receive) begin
                 m_tready <= 0;
             end else begin
                 m_tready <= 1;
@@ -359,13 +377,13 @@ assign s_tvalid = rs_tvalid;
                 end else begin
                     rs_cmd_start <= 0;
                 end
-            end else if (state == st_read  && cnt_cmd == 0) begin                          //create start signal when already get Register Addr
-                if (s_cmd_ready == 1) begin
+            end else if (state == st_read) begin                            //create start signal when already get Register Addr
+                if (s_cmd_ready == 1 && cnt_cmd == 0) begin
                     rs_cmd_start <= 1;
                 end else begin
                     rs_cmd_start <= 0;
                 end
-            end else if(state == st_read_con) begin     //create start signal when send 1st Target Addr and Re-Start Signal
+            end else if(state == st_receive) begin                         //create start signal when send 1st Target Addr and Re-Start Signal
                 if (s_cmd_ready == 1 && cnt_cmd != 2) begin
                     rs_cmd_start <= 1;
                 end else begin
@@ -394,7 +412,6 @@ assign s_tvalid = rs_tvalid;
                 end else begin
                     rs_cmd_stop <= 0;
                 end
-            
             end else if (state == st_read && cnt_cmd == 1) begin
                 if (s_cmd_tready == 1 && rs_cmd_tvalid == 1) begin
                     rs_cmd_stop <= 1;
@@ -413,11 +430,7 @@ assign s_tvalid = rs_tvalid;
             rs_cmd_valid <= 0;
         end else begin
             if (s_cmd_ready == 1) begin
-                if (state == st_write) begin
-                    rs_cmd_valid <= 1;
-                end else if (state == st_read) begin
-                    rs_cmd_valid <= 1;
-                end else if (state == st_read_con) begin
+                if (state == st_write || state == st_read || state == st_receive) begin
                     rs_cmd_valid <= 1;
                 end else begin
                     rs_cmd_valid <= 0;
@@ -449,7 +462,7 @@ assign s_tvalid = rs_tvalid;
                 end else begin
                     cnt_cmd <= cnt_cmd;
                 end
-            end else if (state == st_read_con) begin
+            end else if (state == st_receive) begin
                 if (cnt_cmd == 2) begin
                     cnt_cmd <= cnt_cmd;
                 end else if (s_cmd_start == 1) begin
@@ -480,6 +493,8 @@ assign s_tvalid = rs_tvalid;
                 end else begin
                     s_cmd_write <= 1;
                 end 
+            end else if (state == st_Int) begin
+                s_cmd_write <= 1;
             end else begin
                 s_cmd_write <= 0;
             end
@@ -491,8 +506,14 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             s_cmd_read <= 0;
         end else begin
-            if (state == st_read_con) begin
-                s_cmd_read <= 1;
+            if (state == st_receive) begin
+                if (s_cmd_ready == 1 && s_cmd_valid == 1) begin
+                    if (cnt_int >= 12) begin
+                        s_cmd_read <= 0;
+                    end else begin
+                        s_cmd_read <= 1;
+                    end
+                end
             end else begin
                 s_cmd_read <= 0;
             end
@@ -525,11 +546,9 @@ assign s_tvalid = rs_tvalid;
             end else if (state == st_read) begin
                 //Command For Read Mode
                 case (cnt_cmd)
-                    //0 : rs_cmd_tdata <= {Target_Addr,1'b0};
                     0 : rs_cmd_tdata <= {Conversion,reg_addr};
-                    1 : rs_cmd_tdata <= {Target_Addr,1'b1};
+                    1 : rs_cmd_tdata <= 1'hx;
                     2 : rs_cmd_tdata <= 1'hx;
-                    3 : rs_cmd_tdata <= 1'hx;
                 endcase
             end
         end
@@ -560,7 +579,7 @@ assign s_tvalid = rs_tvalid;
                 end else begin
                     rs_cmd_tvalid <= 0;
                 end
-            end else if (state == st_read_con) begin
+            end else if (state == st_receive) begin
                 if (s_cmd_tready == 1) begin
                     if (cnt_cmd == 1) begin
                         rs_cmd_tvalid <= 1;
@@ -583,7 +602,7 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             rm_cmd_tready <= 0;
         end else begin
-            if (state == st_read_con) begin         //Tx not busy && in Read mode
+            if (state == st_receive || state == st_Int) begin         //Tx not busy && in Read mode
                 rm_cmd_tready <= s_tready;
             end else begin
                 rm_cmd_tready <= 0;
@@ -596,7 +615,7 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             rs_tdata <= 0;
         end else begin
-            if (state == st_read_con) begin
+            if (state == st_receive) begin
                 if (rm_cmd_tready == 1 && m_cmd_tvalid == 1) begin
                     rs_tdata <= m_cmd_tdata;
                 end else begin
@@ -611,23 +630,26 @@ assign s_tvalid = rs_tvalid;
         if (!rstn) begin
             rs_tvalid <= 0;
         end else begin
-            if (state == st_read_con) begin
+            if (state == st_receive) begin
                 if (rm_cmd_tready == 1 && m_cmd_tvalid == 1) begin
                     rs_tvalid <= m_cmd_tvalid;
                 end else begin
                     rs_tvalid <= 0;
                 end
+            end else begin
+                rs_tvalid <= 0;
             end
         end
     end
 
+    //Data Received Counter
     always@ (posedge clk) begin
         if (!rstn) begin
             cnt_int <= 0;
         end else begin
-            if (state == st_read_con) begin
+            if (state == st_receive) begin
                 if (rm_cmd_tready == 1 && m_cmd_tvalid == 1) begin
-                    if (cnt_int == 50) begin
+                    if (cnt_int == 13) begin
                         cnt_int <= 0;
                     end else begin    
                         cnt_int <= cnt_int + 1;
@@ -635,23 +657,34 @@ assign s_tvalid = rs_tvalid;
                 end else begin
                     cnt_int <= cnt_int;
                 end
+            end else if (state == st_Int) begin
+                if (cnt_int == 13) begin
+                    cnt_int <= 0;
+                end else if (s_cmd_ready == 1 && s_cmd_valid == 1) begin
+                    cnt_int <= cnt_int + 1;
+                end else begin
+                    cnt_int <= cnt_int;
+                end
+            end else if (state == st_idel) begin
+                cnt_int <= 0;
             end else begin
                 cnt_int <= cnt_int;
             end
         end
     end
 
-    always@ (posedge clk) begin
+    //Interupt Output
+    /*always@ (posedge clk) begin
         if (!rstn) begin
-            INT_Pin <= 0;
+            INT_Out <= 1;
         end else begin
-            if (state == st_read_con && cnt_int == 49) begin
-                INT_Pin <= 1;
+            if (state == st_read || state == st_Int) begin                  //Active Low
+                INT_Out <= 0;
             end else begin
-                INT_Pin <= 0;
+                INT_Out <= 1;
             end
         end
-    end
+    end*/
 
 //===============================================================================================
 endmodule

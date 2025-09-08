@@ -7,8 +7,6 @@ module Top_Cmp(
     sda_pin,
     INT_Pin,
 
-    sm_cmd_tdata,
-    sm_cmd_tvalid
 );
 
     input wire clk;
@@ -20,35 +18,26 @@ module Top_Cmp(
     inout wire scl_pin;
     inout wire sda_pin;
 
-    output reg INT_Pin;
-
-    output reg [7:0] sm_cmd_tdata;
-    output reg sm_cmd_tvalid;
-
+    inout wire INT_Pin;
 
 //===========================================================================================
 //Internal Signal
     //systems
-    reg rst;            //Active High
-    reg [15:0] prescale_Uart = 54;
-    reg [15:0] prescale_I2C = 125;
+    reg rst;                           //Active High
+    reg [15:0] prescale_Uart = 54;       //921600 = 7, | 14 = 460800 | 54 = 115200
+    reg [15:0] prescale_I2C = 32;      //Max 1MHz = 13 | Standard 400KHz = 32 | 100KHz = 132
 
-    //Uart Tx
+    //UART Tx
     reg [7:0]  s_axis_tdata;
     reg s_axis_tvalid;
     wire s_axis_tready;
+    reg tx_busy;                       //Active when s_axis_tvalid is == 1 and inactive when send stop bit
 
+    //UART Rx
     wire [7:0]  m_axis_tdata;
     wire m_axis_tvalid;
     reg m_axis_tready;
-
-    reg [7:0] rs_axis_tdata;
-    reg rs_axis_tvalid;
-    reg rs_axis_tready;
-
-    reg tx_busy;                     //active when s_axis_tvalid is == 1 and inactive when send stop bit
-
-    reg rx_busy;                     //Active when Rxd is get start bit and inactive shen rxd is get stop bit
+    reg rx_busy;                       //Active when Rxd is get start bit and inactive shen rxd is get stop bit
 
     //I2C Interface
     //Master Command
@@ -84,17 +73,20 @@ module Top_Cmp(
     wire bus_control;
     wire stop_on_idle;
 
+    reg INT_In;
+    wire INT_Out;
+    wire INT_t;
 //===========================================================================================
 //Assignment
-assign rst = ~rstn;
+assign rst = !rstn;
 
 assign scl_i = scl_pin;
 assign scl_pin = scl_t ? 'hz : scl_o;
 assign sda_i = sda_pin;
 assign sda_pin = sda_t ? 'hz : sda_o;
 
-assign sm_cmd_tdata = m_cmd_tdata;
-assign sm_cmd_tvalid = m_cmd_tvalid;
+assign INT_In = INT_Pin;
+assign INT_Pin = INT_t ? 'hz : INT_Out;
 
 //===========================================================================================
 //Component
@@ -123,16 +115,16 @@ assign sm_cmd_tvalid = m_cmd_tvalid;
 
     //Command Block
     Cmd  #(
-        .CRC_En(1'h1), 
+        .CRC_En(1'h0), 
         .MAG_Tempco(2'h0),
         .Conv_AVG(3'h0),
         .I2C_Rd(2'h0),
         .THR_Hyst(3'h0),
-        .LP_Ln(1'h0),
+        .LP_Ln(1'h1),
         .I2C_Glitch_Filter(1'h0),
-        .Trigger_Mode(1'h0),   
+        .Trigger_Mode(1'h1),   
         .Operating_Mode(2'h2),
-        .MAG_CH_En(4'h1),
+        .MAG_CH_En(4'h7),
         .SleepTime(4'h0),
         .T_Rate(1'h0),
         .INTB_Pol(1'h0),
@@ -149,11 +141,11 @@ assign sm_cmd_tvalid = m_cmd_tvalid;
         .Angle_HYS(2'h0),
         .Angle_Offset_En(1'h0),
         .Angle_Offset_Dir(1'h0),
-        .Result_INT(1'h0),
+        .Result_INT(1'h1),
         .Threshold_INT(1'h0),
         .INT_State(1'h0),
-        .INT_Mode(3'h0),  
-        .INT_POL_En(1'h0),
+        .INT_Mode(3'h1),  
+        .INT_POL_En(1'h1),
         .Mask_INT(1'h0), 
         .Gain_X_THR_HI(8'h0),
         .Offset1_Y_THR_HI(8'h0),
@@ -191,7 +183,9 @@ assign sm_cmd_tvalid = m_cmd_tvalid;
         .m_cmd_tvalid (m_cmd_tvalid),
         .m_cmd_tready (m_cmd_tready),
         .m_cmd_tlast (m_cmd_tlast),
-        .INT_Pin (INT_Pin),
+        .INT_In (INT_In),
+        .INT_Out (INT_Out),
+        .INT_t (INT_t),
         .missed_ack(missed_ack)
     );
 
