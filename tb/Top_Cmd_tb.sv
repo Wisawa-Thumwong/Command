@@ -13,7 +13,7 @@ module Top_Cmd_tb ();
     wand scl_pin;
     wand sda_pin;
 
-    reg INT_Pin;
+    wand INT_Pin;
 
     reg [7:0] rs_axis_tdata;
     reg rs_axis_tvalid;
@@ -68,7 +68,7 @@ assign rst = ~rstn;
         //rs_axis_tready <= 0;
         #200 /////////////////
         rstn <= 1;
-        prescale <= 54;
+        prescale <= 6;
         //rs_axis_tready <= 1;
         #200
         rs_axis_tdata <= 8'b01101001;        //Read Addr "0110100"
@@ -83,35 +83,25 @@ assign rst = ~rstn;
         rs_axis_tvalid <= 0;
         #5500
         #6750
-        #1000000
-        rs_axis_tdata <= 8'b00000000;       //{Conversion "1" , Register Addr "0010100"}
+        #2000000
+        /*rs_axis_tdata <= 8'b00000000;       //{Conversion "1" , Register Addr "0010100"}
         rs_axis_tvalid <= 1;
         #20
-        rs_axis_tvalid <= 0;
-        /*
-        #300000
-        rstn <= 0;
-        #20
-        rstn <= 1;
+        rs_axis_tvalid <= 0;*/
 
         //Read Mode
-        #2000
-        rs_axis_tdata <= 8'b10011011;   //{Target Addr "1001101" , Write_mode "1"}
-        rs_axis_tvalid <= 1;
-        #20
-        rs_axis_tvalid <= 0;
-        #14000
-        #18500
-        rs_axis_tdata <= 8'b10111011;       //{Conversion "1" , Register Addr "0111011"}
+        /*#2000
+        rs_axis_tdata <= 8'b01101001;   //{Target Addr "1001101" , Write_mode "1"}
         rs_axis_tvalid <= 1;
         #20
         rs_axis_tvalid <= 0;
         #200000
-        rs_axis_tdata <= 8'b10111011;       //Send Any command for stop
+        rs_axis_tdata <= 8'b10000000;       //{Conversion "1" , Register Addr "0111011"}
         rs_axis_tvalid <= 1;
         #20
-        rs_axis_tvalid <= 0;*/
-        #1000000
+        rs_axis_tvalid <= 0;
+        #200000*/
+        #2000000
         $finish;
 
     end
